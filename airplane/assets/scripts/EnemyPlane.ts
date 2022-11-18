@@ -1,5 +1,5 @@
 
-import { _decorator, Component, Node, randomRangeInt } from 'cc';
+import { _decorator, Component, Node, randomRangeInt, Collider } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**

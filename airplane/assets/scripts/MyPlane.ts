@@ -1,5 +1,5 @@
 
-import { _decorator, Component, Node, systemEvent, SystemEvent, Touch, Camera, Vec3, PhysicsSystem, PhysicsRayResult, Vec2, Prefab, instantiate, Collider, ITriggerEvent } from 'cc';
+import { _decorator, Component, Node, systemEvent, SystemEvent, Touch, Camera, Vec3, PhysicsSystem, PhysicsRayResult, Vec2, Prefab, instantiate, Collider, ITriggerEvent, ICollisionEvent } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
@@ -35,9 +35,10 @@ export class MyPlane extends Component {
     start() {
         systemEvent.on(SystemEvent.EventType.TOUCH_START, this.handlerTouchStart)
         systemEvent.on(SystemEvent.EventType.TOUCH_MOVE, this.handlerTouchMove)
-        const collider = this.getComponent(Collider);
-        collider.once("onTriggerEnter",()=>{
+        const collider = this.getComponent(Collider)
+        collider.on("onTriggerEnter",(event:ITriggerEvent)=>{
             this.node.destroy()
+            this.destroy()
         })
     }
 
