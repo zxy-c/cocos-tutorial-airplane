@@ -1,5 +1,5 @@
 
-import { _decorator, Component, Node, systemEvent, SystemEvent,Touch, Camera, Vec3, PhysicsSystem, PhysicsRayResult } from 'cc';
+import { _decorator, Component, Node, systemEvent, SystemEvent, Touch, Camera, Vec3, PhysicsSystem, PhysicsRayResult, Vec2, Prefab, instantiate, Collider, ITriggerEvent } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
@@ -13,48 +13,69 @@ const { ccclass, property } = _decorator;
  * ManualUrl = https://docs.cocos.com/creator/3.3/manual/en/
  *
  */
- 
+
 @ccclass('MyPlane')
 export class MyPlane extends Component {
-    // [1]
-    // dummy = '';
-
-    // [2]
-    // @property
-    // serializableDummy = 0;
 
     @property
     speed = 1
 
     @property(Camera)
-    camera:Camera
+    camera: Camera
 
-    start () {
-        systemEvent.on(SystemEvent.EventType.TOUCH_MOVE,this.handlerTouchMove)
+    shootRate = 0.3
+
+    private touchStartPosition = new Vec3()
+
+    private shootWaitTime = 0
+
+    @property(Prefab)
+    bullet: Prefab
+
+    start() {
+        systemEvent.on(SystemEvent.EventType.TOUCH_START, this.handlerTouchStart)
+        systemEvent.on(SystemEvent.EventType.TOUCH_MOVE, this.handlerTouchMove)
+        const collider = this.getComponent(Collider);
+        collider.once("onTriggerEnter",()=>{
+            this.node.destroy()
+        })
     }
 
-    
+    private handlerTouchStart = (touch: Touch) => {
+        const touchStartLocation = touch.getLocation()
+        this.touchStartPosition.set(this.camera.screenToWorld(new Vec3(touchStartLocation.x, touchStartLocation.y, 0)))
+    }
 
-
-    private handlerTouchMove = (touch:Touch)=>{
-        // console.log(touch.getLocation(),touch.getDelta(),touch.getUIDelta(),this.camera.screenToWorld(new Vec3(touch.getLocationX(),0,touch.getLocationY())))
-        
-        const delta = touch.getDelta()
-        
+    private handlerTouchMove = (touch: Touch) => {
         const position = this.node.position
-        const ray = this.camera.screenPointToRay(delta.x, delta.y);
-        this.node.con
-        const newLocal = PhysicsSystem.instance.raycast(ray);
-        console.log(newLocal,PhysicsSystem.instance.raycastResults)
-        
-        // const deltaPosition = this.camera.screenToWorld(new Vec3(delta.x, 0, delta.y))
-        // console.log(deltaPosition,delta)
-        // this.node.setPosition(position.x + deltaPosition.x,position.y,position.z + deltaPosition.z)
-        // const ray = this.camera.screenPointToRay(0, 0);
-        // ray.computeHit()
-        // this.camera.screenToWorld(touch.getDelta())
-        // this.node.setPosition(position.x+ this.speed * delta.x,position.y,position.z - this.speed * delta.y)
+        const touchLocation = touch.getLocation()
+        const touchPosition = this.camera.screenToWorld(new Vec3(touchLocation.x, touchLocation.y, 0))
+        const deltaPosition = touchPosition.clone().subtract(this.touchStartPosition)
+
+        this.node.setWorldPosition(position.x + deltaPosition.x, position.y, position.z + deltaPosition.z)
+        this.touchStartPosition.set(touchPosition)
     }
+
+    onDestroy() {
+        systemEvent.off(SystemEvent.EventType.TOUCH_START, this.handlerTouchStart)
+        systemEvent.off(SystemEvent.EventType.TOUCH_MOVE, this.handlerTouchMove)
+    }
+
+    update(deltaTime: number) {
+        this.shootWaitTime += deltaTime
+
+        if (this.shootWaitTime > this.shootRate) {
+            this.createBullet()
+            this.shootWaitTime = 0;
+        }
+    }
+
+    createBullet() {
+        const bullet = instantiate(this.bullet)
+        this.node.parent.addChild(bullet)
+        bullet.setWorldPosition(this.node.worldPosition.x, this.node.worldPosition.y, this.node.worldPosition.z - 7)
+    }
+
 }
 
 /**

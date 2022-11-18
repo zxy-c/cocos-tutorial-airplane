@@ -1,5 +1,6 @@
 
-import { _decorator, Component, Node, Material, MeshRenderer } from 'cc';
+import { _decorator, Component, Node, Material, MeshRenderer, Prefab, math, instantiate, randomRangeInt, EventMouse, macro } from 'cc';
+import { EnemyPlane } from './EnemyPlane';
 const { ccclass, property,executeInEditMode } = _decorator;
 
 /**
@@ -16,47 +17,54 @@ const { ccclass, property,executeInEditMode } = _decorator;
 
 
 @ccclass('GameManager')
-@_decorator.requireComponent(MeshRenderer)
 @_decorator.menu("manager/GameManager")
 export class GameManager extends Component {
-    // [1]
-    // dummy = '';
+    
+    @property(Prefab)
+    enemyPlane1: Prefab
 
-    // [2]
-    // @property
-    // serializableDummy = 0;
+    @property(Prefab)
+    enemyPlane2: Prefab
 
-    @property
-    foo = 10
+    private difficulty = 0
 
-    @property(Material)
-    bar: Material = null
+    private get generateSingleEnemyPlanePeriod (){
+        const times = [2, 1.7, 1.4, 1];
+        return times[this.difficulty]
+    }
 
-    private _init = false
+    private generateSingleEnemyPlaneWaitTime = 0
 
     onLoad(){
-
+        this.schedule(()=>{
+            this.difficulty += 1
+        },30)
     }
 
     onEnable(){
 
     }
 
-    update(){
-        if(this._init){
-            console.log("update")
+    update(delatTime:number){
+        this.generateSingleEnemyPlaneWaitTime+=delatTime
+        if(this.generateSingleEnemyPlaneWaitTime>=this.generateSingleEnemyPlanePeriod){
+            this.createSingleEnemyPlane()
+            this.generateSingleEnemyPlaneWaitTime = 0
         }
     }
 
     lateUpdate(){
-        if (this._init){
-            console.log("lateUpdate")
-            this._init = false
-        }
+
     }
 
     start () {
-        // [3]
+
+    }
+
+    createSingleEnemyPlane(){
+        const prefab = [this.enemyPlane1,this.enemyPlane2][math.randomRangeInt(0,2)]
+        const enemyPlane = instantiate(prefab)
+        this.node.parent.addChild(enemyPlane)
     }
 
     // update (deltaTime: number) {
