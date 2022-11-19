@@ -23,6 +23,12 @@ export class EnemyPlane extends Component {
     start () {
         const randomX = randomRangeInt(-16, 16)
         this.node.setWorldPosition(randomX,0,-50)
+
+        const collider = this.getComponent(Collider)
+        collider.once("onTriggerEnter",()=>{
+            this.node.destroy()
+            this.destroy()
+        })
     }
 
     update (deltaTime: number) {

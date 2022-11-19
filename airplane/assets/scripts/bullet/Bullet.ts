@@ -1,5 +1,5 @@
 
-import { _decorator, Component, Node, Camera, UITransform } from 'cc';
+import { _decorator, Component, Node, Camera, UITransform, Collider, View } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
@@ -26,14 +26,24 @@ export class Bullet extends Component {
     @property
     speed = 0.5
 
+    camera:Camera
+
     start () {
-        
+        const collider = this.getComponent(Collider)
+        collider.once("onTriggerEnter",()=>{
+            this.node.destroy()
+            this.destroy()
+        })
     }
 
     update (deltaTime: number) {
         const position = this.node.worldPosition;
         this.node.setWorldPosition(position.x,position.y,position.z - this.speed)
-        if(position.z<-50){
+        const viewportRect = View.instance.getViewportRect();
+        const screenPosition = this.camera.worldToScreen(this.node.worldPosition);
+        const horizontalBound = viewportRect.width * 0.1
+        const verticalBound = viewportRect.height * 0.2
+        if(screenPosition.x > viewportRect.width + horizontalBound || screenPosition.x < -horizontalBound || screenPosition.y > viewportRect.height + verticalBound || screenPosition.y < - verticalBound){
             this.node.destroy()
         }
     }

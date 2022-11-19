@@ -1,5 +1,7 @@
 
-import { _decorator, Component, Node, systemEvent, SystemEvent, Touch, Camera, Vec3, PhysicsSystem, PhysicsRayResult, Vec2, Prefab, instantiate, Collider, ITriggerEvent, ICollisionEvent } from 'cc';
+import { _decorator, Component, Node, systemEvent, SystemEvent, Touch, Camera, Vec3, PhysicsSystem, PhysicsRayResult, Vec2, Prefab, instantiate, Collider, ITriggerEvent, ICollisionEvent, RigidBody, ERigidBodyType } from 'cc';
+import { Bullet } from './bullet/Bullet';
+import PhysicsGroup from './utils/PhysicsGroup';
 const { ccclass, property } = _decorator;
 
 /**
@@ -36,7 +38,7 @@ export class MyPlane extends Component {
         systemEvent.on(SystemEvent.EventType.TOUCH_START, this.handlerTouchStart)
         systemEvent.on(SystemEvent.EventType.TOUCH_MOVE, this.handlerTouchMove)
         const collider = this.getComponent(Collider)
-        collider.on("onTriggerEnter",(event:ITriggerEvent)=>{
+        collider.once("onTriggerEnter",(event:ITriggerEvent)=>{
             this.node.destroy()
             this.destroy()
         })
@@ -73,6 +75,10 @@ export class MyPlane extends Component {
 
     createBullet() {
         const bullet = instantiate(this.bullet)
+        const bulletComponent = bullet.getComponent(Bullet);
+        bulletComponent.camera = this.camera
+        const rigidBody = bullet.getComponent(RigidBody);
+        rigidBody.group = PhysicsGroup.MY_BULLET
         this.node.parent.addChild(bullet)
         bullet.setWorldPosition(this.node.worldPosition.x, this.node.worldPosition.y, this.node.worldPosition.z - 7)
     }
