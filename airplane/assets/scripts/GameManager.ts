@@ -1,6 +1,8 @@
 
-import { _decorator, Component, Node, Material, MeshRenderer, Prefab, math, instantiate, randomRangeInt, EventMouse, macro } from 'cc';
+import { _decorator, Component, Node, Material, MeshRenderer, Prefab, math, instantiate, randomRangeInt, EventMouse, macro, Vec3, Camera } from 'cc';
+import { BulletBuff, BulletBuffType } from './buff/bullet/BulletBuff';
 import { EnemyPlane } from './EnemyPlane';
+import { MyPlane } from './MyPlane';
 const { ccclass, property,executeInEditMode } = _decorator;
 
 /**
@@ -28,9 +30,24 @@ export class GameManager extends Component {
 
     private difficulty = 0
 
+    @property(MyPlane)
+    myPlane?:MyPlane
+
+    @property(Prefab)
+    bulletBuffM:Prefab
+
+    @property(Prefab)
+    bulletBuffH:Prefab
+
+    @property(Prefab)
+    bulletBuffS:Prefab
+
+    @property(Camera)
+    camera: Camera
+
     private get generateSingleEnemyPlanePeriod (){
         const times = [2, 1.7, 1.4, 1];
-        return times[this.difficulty]
+        return times[Math.max(this.difficulty,times.length-1)]
     }
 
     private generateSingleEnemyPlaneWaitTime = 0
@@ -39,6 +56,9 @@ export class GameManager extends Component {
         this.schedule(()=>{
             this.difficulty += 1
         },30)
+        this.schedule(()=>{
+            this.createBulletBuff()
+        },40,macro.REPEAT_FOREVER,1)
     }
 
     onEnable(){
@@ -65,6 +85,23 @@ export class GameManager extends Component {
         const prefab = [this.enemyPlane1,this.enemyPlane2][math.randomRangeInt(0,2)]
         const enemyPlane = instantiate(prefab)
         this.node.parent.addChild(enemyPlane)
+    }
+
+    createBulletBuff(){
+        const type = [BulletBuffType.M,BulletBuffType.S,BulletBuffType.H][ math.randomRangeInt(0,3)]
+        let prefab:Prefab;
+        switch(type){
+            case BulletBuffType.H:
+                prefab = this.bulletBuffH
+            case BulletBuffType.M:
+                prefab = this.bulletBuffM
+            case BulletBuffType.S:
+                prefab = this.bulletBuffS
+        }
+        const node = instantiate(prefab);
+        const bulletBuff = node.getComponent(BulletBuff);
+        bulletBuff.camera = this.camera
+        this.node.addChild(node)
     }
 
     // update (deltaTime: number) {

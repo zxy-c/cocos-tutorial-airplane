@@ -1,5 +1,6 @@
 
 import { _decorator, Component, Node, systemEvent, SystemEvent, Touch, Camera, Vec3, PhysicsSystem, PhysicsRayResult, Vec2, Prefab, instantiate, Collider, ITriggerEvent, ICollisionEvent, RigidBody, ERigidBodyType } from 'cc';
+import { BulletBuff, BulletBuffType } from './buff/bullet/BulletBuff';
 import { Bullet } from './bullet/Bullet';
 import PhysicsGroup from './utils/PhysicsGroup';
 const { ccclass, property } = _decorator;
@@ -34,13 +35,20 @@ export class MyPlane extends Component {
     @property(Prefab)
     bullet: Prefab
 
+    bulletBuffType = BulletBuffType.M
+
     start() {
         systemEvent.on(SystemEvent.EventType.TOUCH_START, this.handlerTouchStart)
         systemEvent.on(SystemEvent.EventType.TOUCH_MOVE, this.handlerTouchMove)
         const collider = this.getComponent(Collider)
         collider.once("onTriggerEnter",(event:ITriggerEvent)=>{
-            this.node.destroy()
-            this.destroy()
+            const group = event.otherCollider.getGroup();
+            if(group === PhysicsGroup.BULLET_BUFF){
+                this.bulletBuffType = event.otherCollider.getComponent(BulletBuff).bulletBuffType;
+            }else if(group === PhysicsGroup.ENEMY_BULLET || group === PhysicsGroup.ENEMY_PLANE){
+                this.node.destroy()
+                this.destroy()
+            }
         })
     }
 
