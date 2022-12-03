@@ -539,28 +539,30 @@
     "_enabled": true,
     "__prefab": null,
     "enemyPlane1": {
-      "__uuid__": "36e2d920-7245-49b5-be74-f68174d09cb5",
+      "__uuid__": "a57c3748-f2bc-4a70-b395-330a5e9cb328",
       "__expectedType__": "cc.Prefab"
     },
     "enemyPlane2": {
-      "__uuid__": "a57c3748-f2bc-4a70-b395-330a5e9cb328",
+      "__uuid__": "36e2d920-7245-49b5-be74-f68174d09cb5",
       "__expectedType__": "cc.Prefab"
     },
     "myPlane": {
       "__id__": 19
     },
-    "bulletBuffM": {
-      "__uuid__": "55ee6526-ef2a-45ce-b2e1-57498b0f9f49",
-      "__expectedType__": "cc.Prefab"
-    },
-    "bulletBuffH": {
-      "__uuid__": "8ca447d4-9551-496f-876b-c65f95ae91fc",
-      "__expectedType__": "cc.Prefab"
-    },
-    "bulletBuffS": {
-      "__uuid__": "d99b694b-0533-4a5c-b295-a20b9d8c25f6",
-      "__expectedType__": "cc.Prefab"
-    },
+    "bulletBuffs": [
+      {
+        "__uuid__": "8ca447d4-9551-496f-876b-c65f95ae91fc",
+        "__expectedType__": "cc.Prefab"
+      },
+      {
+        "__uuid__": "55ee6526-ef2a-45ce-b2e1-57498b0f9f49",
+        "__expectedType__": "cc.Prefab"
+      },
+      {
+        "__uuid__": "d99b694b-0533-4a5c-b295-a20b9d8c25f6",
+        "__expectedType__": "cc.Prefab"
+      }
+    ],
     "camera": {
       "__id__": 6
     },

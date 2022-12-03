@@ -1,5 +1,5 @@
 
-import { _decorator, Component, Node, Collider, View, Camera, ITriggerEvent, math } from 'cc';
+import { _decorator, Component, Node, Collider, View, Camera, ITriggerEvent, math, Prefab, instantiate } from 'cc';
 import { MyPlane } from '../../MyPlane';
 const { ccclass, property } = _decorator;
 
@@ -27,6 +27,30 @@ export class BulletBuff extends Component {
 
     camera:Camera
 
+    bulletBuffs:Prefab[]
+
+    private needInitial = true
+
+    static randomCreateNode(bulletBuffs:Prefab[],camera:Camera,){
+        const prefab:Prefab = bulletBuffs[math.randomRangeInt(0,3)]
+        const node = instantiate(prefab)
+        const bulletBuff = node.getComponent(BulletBuff)
+        bulletBuff.camera = camera
+        bulletBuff.bulletBuffs = bulletBuffs
+        return node
+    }
+
+    private static randomCreateNodeByOldBulletBuff(bulletBuffs:Prefab[],camera:Camera, oldBulletBuff:BulletBuff){
+        const prefab:Prefab = bulletBuffs[math.randomRangeInt(0,3)]
+        const node = instantiate(prefab)
+        const bulletBuff = node.getComponent(BulletBuff)
+        bulletBuff.camera = camera
+        bulletBuff.bulletBuffs = bulletBuffs
+        bulletBuff.xSpeed = oldBulletBuff.xSpeed
+        bulletBuff.needInitial = false
+        return node
+    }
+
     get bulletBuffType (){
         return this.node.name.charAt(this.node.name.length-1) as BulletBuffType
     }
@@ -36,7 +60,10 @@ export class BulletBuff extends Component {
     }
 
     start () {
-        this.node.setWorldPosition(math.randomRange( BulletBuff.xBoundary,-BulletBuff.xBoundary),0,-50)
+        if(this.needInitial){
+            this.node.setWorldPosition(math.randomRange( BulletBuff.xBoundary,-BulletBuff.xBoundary),0,-50)
+        }
+        
 
         const collider = this.getComponent(Collider)
         collider.once("onTriggerEnter",()=>{            
@@ -51,8 +78,15 @@ export class BulletBuff extends Component {
         if(screenPosition.y <0 ){
             this.node.destroy()
         }else {
-            if(Math.abs(position.x)>=BulletBuff.xBoundary){
+            if((this.xSpeed>0&& position.x>=BulletBuff.xBoundary) || (this.xSpeed<0&& position.x<=-BulletBuff.xBoundary)){
                 this.xSpeed = -this.xSpeed
+                if(math.randomRangeInt(0,3)>0){
+                    const newNode = BulletBuff.randomCreateNodeByOldBulletBuff(this.bulletBuffs, this.camera, this);
+                    newNode.setWorldPosition(position)
+                    this.node.parent.addChild(newNode)
+                    this.node.destroy()
+                    this.destroy()
+                }
             }
             this.node.setWorldPosition(position.x + this.xSpeed,position.y,position.z + this.ySpeed)
         }

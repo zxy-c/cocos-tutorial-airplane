@@ -33,14 +33,8 @@ export class GameManager extends Component {
     @property(MyPlane)
     myPlane?:MyPlane
 
-    @property(Prefab)
-    bulletBuffM:Prefab
-
-    @property(Prefab)
-    bulletBuffH:Prefab
-
-    @property(Prefab)
-    bulletBuffS:Prefab
+    @property([Prefab])
+    bulletBuffs:Prefab[]
 
     @property(Camera)
     camera: Camera
@@ -88,11 +82,12 @@ export class GameManager extends Component {
     }
 
     createBulletBuff(){
-        const prefab:Prefab = [this.bulletBuffH,this.bulletBuffM,this.bulletBuffS][ math.randomRangeInt(0,3)]
+        const prefab:Prefab = this.bulletBuffs[math.randomRangeInt(0,3)]
         const node = instantiate(prefab);
         const bulletBuff = node.getComponent(BulletBuff);
         bulletBuff.camera = this.camera
-        this.node.addChild(node)
+        bulletBuff.bulletBuffs = this.bulletBuffs.filter(it=>it!==prefab)
+        this.node.addChild(BulletBuff.randomCreateNode(this.bulletBuffs,this.camera))
     }
 
     // update (deltaTime: number) {
