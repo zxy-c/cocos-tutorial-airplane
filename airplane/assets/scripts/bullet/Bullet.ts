@@ -28,7 +28,11 @@ export class Bullet extends Component {
 
     camera:Camera
 
+    rotate = 0
+
     start () {
+        this.node.setRotationFromEuler(-90,this.rotate,0)
+
         const collider = this.getComponent(Collider)
         collider.once("onTriggerEnter",()=>{
             this.node.destroy()
@@ -38,7 +42,9 @@ export class Bullet extends Component {
 
     update (deltaTime: number) {
         const position = this.node.worldPosition;
-        this.node.setWorldPosition(position.x,position.y,position.z - this.speed)
+        
+        const radius = Math.PI / 180 * this.rotate;
+        this.node.setWorldPosition(position.x-Math.sin(radius)*this.speed,position.y,position.z - Math.cos(radius) * this.speed)
         const viewportRect = View.instance.getViewportRect();
         const screenPosition = this.camera.worldToScreen(this.node.worldPosition);
         const horizontalBound = viewportRect.width * 0.1

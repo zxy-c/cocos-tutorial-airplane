@@ -26,30 +26,62 @@ export class MyPlane extends Component {
     @property(Camera)
     camera: Camera
 
-    shootRate = 0.3
+    basicShootRate = 0.3
 
     private touchStartPosition = new Vec3()
 
     private shootWaitTime = 0
 
     @property(Prefab)
-    bullet: Prefab
+    bulletPill: Prefab
+
+    @property(Prefab)
+    bulletMoon: Prefab
 
     bulletBuffType = BulletBuffType.M
 
-    start() {
+    static MIN_BULLET_LEVEL = 1
+    static MAX_BULLET_LEVEL = 5
+    private bulletLevel = 1
+
+    private get shootRate(){
+        console.log(this.basicShootRate * this.shootRateBasicNumberByBulletType * Math.pow(0.8,this.bulletLevel - 1),this.bulletBuffType,this.bulletLevel)
+        return this.basicShootRate * this.shootRateBasicNumberByBulletType * Math.pow(0.8,this.bulletLevel - 1)
+    }
+
+    private get shootRateBasicNumberByBulletType(){
+        return {
+            [BulletBuffType.M]: 1,
+            [BulletBuffType.H]: 2.4,
+            [BulletBuffType.S]: 3.6,
+        }[this.bulletBuffType]
+    }
+
+    onEnable() {
         systemEvent.on(SystemEvent.EventType.TOUCH_START, this.handlerTouchStart)
         systemEvent.on(SystemEvent.EventType.TOUCH_MOVE, this.handlerTouchMove)
         const collider = this.getComponent(Collider)
-        collider.once("onTriggerEnter",(event:ITriggerEvent)=>{
-            const group = event.otherCollider.getGroup();
-            if(group === PhysicsGroup.BULLET_BUFF){
-                this.bulletBuffType = event.otherCollider.getComponent(BulletBuff).bulletBuffType;
-            }else if(group === PhysicsGroup.ENEMY_BULLET || group === PhysicsGroup.ENEMY_PLANE){
-                this.node.destroy()
-                this.destroy()
-            }
-        })
+        collider.on("onTriggerEnter",this.onTriggerEnter)
+    }
+
+    private onTriggerEnter = (event:ITriggerEvent)=>{
+        const group = event.otherCollider.getGroup();
+        if(group === PhysicsGroup.BULLET_BUFF){
+            this.applyBulletBuff( event.otherCollider.getComponent(BulletBuff).bulletBuffType);
+        }else if(group === PhysicsGroup.ENEMY_BULLET || group === PhysicsGroup.ENEMY_PLANE){
+            this.node.destroy()
+            this.destroy()
+        }
+    }
+    
+
+    private applyBulletBuff(bulletBuffType:BulletBuffType){
+        if(this.bulletBuffType === bulletBuffType){
+            this.bulletLevel = Math.min(MyPlane.MAX_BULLET_LEVEL,this.bulletLevel + 1);
+        } else {
+            this.bulletLevel = Math.max(MyPlane.MIN_BULLET_LEVEL,this.bulletLevel - 2);
+        }
+        this.bulletBuffType = bulletBuffType
     }
 
     private handlerTouchStart = (touch: Touch) => {
@@ -70,6 +102,8 @@ export class MyPlane extends Component {
     onDestroy() {
         systemEvent.off(SystemEvent.EventType.TOUCH_START, this.handlerTouchStart)
         systemEvent.off(SystemEvent.EventType.TOUCH_MOVE, this.handlerTouchMove)
+        const collider = this.getComponent(Collider)
+        collider.off("onTriggerEnter",this.onTriggerEnter)
     }
 
     update(deltaTime: number) {
@@ -82,13 +116,39 @@ export class MyPlane extends Component {
     }
 
     createBullet() {
-        const bullet = instantiate(this.bullet)
+        if(this.bulletBuffType==BulletBuffType.M){
+            this.createVerticalyMoveBullect(this.node.worldPosition.x,this.node.worldPosition.z - 7)
+        }else if(this.bulletBuffType==BulletBuffType.H){
+            this.createVerticalyMoveBullect(this.node.worldPosition.x - 2.5,this.node.worldPosition.z - 2)
+            this.createVerticalyMoveBullect(this.node.worldPosition.x + 2.5,this.node.worldPosition.z - 2)
+        } else {
+            this.createSBullet(this.node.worldPosition.x + 2.5,this.node.worldPosition.z - 2,-20)
+            this.createSBullet(this.node.worldPosition.x, this.node.worldPosition.z - 7,0)
+            this.createSBullet(this.node.worldPosition.x - 2.5,this.node.worldPosition.z - 2,20)
+        }
+    }
+
+    private createVerticalyMoveBullect(x:number, z:number){
+        const bullet = instantiate(this.bulletPill)
         const bulletComponent = bullet.getComponent(Bullet);
         bulletComponent.camera = this.camera
         const rigidBody = bullet.getComponent(RigidBody);
         rigidBody.group = PhysicsGroup.MY_BULLET
         this.node.parent.addChild(bullet)
-        bullet.setWorldPosition(this.node.worldPosition.x, this.node.worldPosition.y, this.node.worldPosition.z - 7)
+        bullet.setWorldPosition(x, this.node.worldPosition.y, z)
+    }
+
+    private createSBullet(x:number,z:number,rotate = 0){
+        const bullet = instantiate(this.bulletMoon)
+        const bulletComponent = bullet.getComponent(Bullet);
+        bulletComponent.camera = this.camera
+        bulletComponent.rotate = rotate;
+        const rigidBody = bullet.getComponent(RigidBody);
+        rigidBody.group = PhysicsGroup.MY_BULLET
+        this.node.parent.addChild(bullet)
+
+        bullet.setWorldPosition(x, this.node.worldPosition.y, z)
+        
     }
 
 }

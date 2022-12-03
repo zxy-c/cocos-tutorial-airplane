@@ -58,7 +58,7 @@ export class GameManager extends Component {
         },30)
         this.schedule(()=>{
             this.createBulletBuff()
-        },40,macro.REPEAT_FOREVER,1)
+        },10,macro.REPEAT_FOREVER,1)
     }
 
     onEnable(){
@@ -88,16 +88,7 @@ export class GameManager extends Component {
     }
 
     createBulletBuff(){
-        const type = [BulletBuffType.M,BulletBuffType.S,BulletBuffType.H][ math.randomRangeInt(0,3)]
-        let prefab:Prefab;
-        switch(type){
-            case BulletBuffType.H:
-                prefab = this.bulletBuffH
-            case BulletBuffType.M:
-                prefab = this.bulletBuffM
-            case BulletBuffType.S:
-                prefab = this.bulletBuffS
-        }
+        const prefab:Prefab = [this.bulletBuffH,this.bulletBuffM,this.bulletBuffS][ math.randomRangeInt(0,3)]
         const node = instantiate(prefab);
         const bulletBuff = node.getComponent(BulletBuff);
         bulletBuff.camera = this.camera

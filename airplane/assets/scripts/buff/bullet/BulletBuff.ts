@@ -43,15 +43,12 @@ export class BulletBuff extends Component {
             this.node.destroy()
             this.destroy()
         })
-        console.log("start")
     }
 
     update (deltaTime: number) {
         const position = this.node.worldPosition
         const screenPosition = this.camera.worldToScreen(this.node.worldPosition);
-        console.log(position);
         if(screenPosition.y <0 ){
-            console.log("out of boundary")
             this.node.destroy()
         }else {
             if(Math.abs(position.x)>=BulletBuff.xBoundary){
@@ -61,9 +58,7 @@ export class BulletBuff extends Component {
         }
     }
 
-    onDestroy(){
-        console.error("onDestory")
-    }
+
 
     
 }
